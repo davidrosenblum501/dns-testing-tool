@@ -50,6 +50,9 @@ const main = async (): Promise<void> => {
     .split('\n')
     .map((line) => {
       const trimmed = line.trim();
+      if (!trimmed) {
+        return ''; // Removed in filter
+      }
       return line.startsWith('https://') ? trimmed : `https://${trimmed}`;
     })
     .filter((line) => !!line && line.includes('.'));
@@ -67,7 +70,7 @@ const main = async (): Promise<void> => {
   
   const urlsPacked = urls.concat(urlDupes);
 
-  console.log(`Testing ${urls.length} urls...`);
+  console.log(`Testing ${urlsPacked.length} urls...`);
   const testResults = await Promise.all(urlsPacked.map(testUrl));
   const output = urlsPacked
     .map((url, index) => {
