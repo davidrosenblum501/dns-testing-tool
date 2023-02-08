@@ -24,12 +24,14 @@ const main = async (): Promise<void> => {
     output: process.stdout,
   });
 
+  console.log('DNS Testing Tool\n');
+
   const defaultInputFilePath = 'urls.txt';
   const inputFilePathRaw =
     await ask(rl, `Enter input urls file path [${defaultInputFilePath}]:`) || defaultInputFilePath;
   const inputFilePath = path.resolve(inputFilePathRaw);
 
-  const defaultOutputFilePath = 'output.txt';
+  const defaultOutputFilePath = 'output.csv';
   const outputFilePathRaw = 
     await ask(rl, `Enter output results file path [${defaultOutputFilePath}]:`) || defaultOutputFilePath;
   const outputFilePath = path.resolve(outputFilePathRaw);
@@ -72,15 +74,16 @@ const main = async (): Promise<void> => {
 
   console.log(`Testing ${urlsPacked.length} urls...`);
   const testResults = await Promise.all(urlsPacked.map(testUrl));
+  const delim = outputFilePathRaw.endsWith('.csv') ? ',' : ': ';
   const output = urlsPacked
     .map((url, index) => {
       const urlResult = testResults[index];
       switch (urlResult) {
         case true:
-          return `${url}: OK`;
+          return `${url}${delim}OK`;
         default:
         case false:
-          return `${url}: ERROR`;
+          return `${url}${delim}ERROR`;
       }
     })
     .join('\n');
