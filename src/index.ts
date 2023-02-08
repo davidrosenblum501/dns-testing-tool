@@ -3,6 +3,16 @@ import fs from 'fs/promises';
 import path from 'path';
 import readline from 'readline';
 
+const modifyFilePath = (
+  filePath: string,
+  modify: (absoluteDirPath: string, fileName: string, fileExt: string) => string
+): string => {
+  const absoluteDirPath = path.dirname(filePath);
+  const fileExt = path.extname(filePath);
+  const fileName = path.basename(filePath).replace(fileExt, '');
+  return modify(absoluteDirPath, fileName, fileExt);
+};
+
 const testUrl = async (url: string): Promise<boolean> => {
   try {
     await fetch(url);
@@ -74,6 +84,9 @@ const main = async (): Promise<void> => {
 
   console.log(`Testing ${urlsPacked.length} urls...`);
   const testResults = await Promise.all(urlsPacked.map(testUrl));
+  console.log('Done.\n');
+
+  console.log(`Saving results to ${outputFilePathRaw}...`);
   const delim = outputFilePathRaw.endsWith('.csv') ? ',' : ': ';
   const output = urlsPacked
     .map((url, index) => {
@@ -88,10 +101,21 @@ const main = async (): Promise<void> => {
       }
     })
     .join('\n');
+  await fs.writeFile(outputFilePath, output);
   console.log('Done.\n');
 
-  console.log(`Saving results to ${outputFilePathRaw}...`);
-  await fs.writeFile(outputFilePath, output);
+  const outputErrorsFilePath = modifyFilePath(
+    outputFilePath,
+    (fileDir, fileName, fileExt) => path.resolve(`${fileDir}/${fileName}_errors${fileExt}`)
+  );
+  console.log(`Saving error-only results to ${path.basename(outputErrorsFilePath)}...`);
+  const outputErrors = urlsPacked
+    .filter((_url, index) => {
+      const urlResult = testResults[index];
+      return urlResult === false;
+    })
+    .join('\n');
+  await fs.writeFile(outputErrorsFilePath, outputErrors);
   console.log('Done.\n');
 
   console.log('Goodbye!');
