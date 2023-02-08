@@ -81,9 +81,10 @@ const main = async (): Promise<void> => {
       switch (urlResult) {
         case true:
           return `${url}${delim}OK`;
-        default:
         case false:
           return `${url}${delim}ERROR`;
+        default:
+          return `${url}${delim}null`;
       }
     })
     .join('\n');
